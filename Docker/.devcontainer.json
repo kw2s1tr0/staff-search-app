@@ -1,0 +1,17 @@
+{
+    "name": "Staff Search App Dev Container",
+    "dockerComposeFile": "docker-compose.yml",
+    "workspaceFolder": "/ssapp",
+    "service": "php",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "xdebug.php-debug",
+                "bmewburn.vscode-intelephense-client"
+            ]
+            
+        }
+    },
+    "forwardPorts": [9003]
+    
+}

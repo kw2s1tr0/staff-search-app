@@ -1,0 +1,61 @@
+name: SSA
+services:
+  php:
+    container_name: php
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    volumes:
+      - type: bind
+        source: ../
+        target: /ssapp
+      - type: bind
+        source: ./php/.conf
+        target: /etc/apache2/site-enabled/000-default.conf
+      - type: volume
+        source: ssapp-storage
+        target: /var/www/html/storage
+      - type: volume
+        source: ssapp-vendor
+        target: /var/www/html/vendor
+      - type: volume
+        source: ssapp-cache
+        target: /var/www/html/bootstrap/cache
+    ports:
+      - "8000:80"
+    depends_on:
+      - mysql
+    networks:
+      - ssapp-network
+  
+  mysql:
+    container_name: mysql
+    build:
+      context: ./mysql
+      dockerfile: Dockerfile
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mysql
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - type: volume
+        source: mysql-data
+        target: /var/lib/mysql
+      - type: bind
+        source: ./mysql/init.sql
+        target: /docker-entrypoint-initdb.d/init.sql
+    networks:
+      - ssapp-network
+
+
+volumes:
+  ssapp-storage:
+  ssapp-vendor:
+  ssapp-cache:
+  mysql-data:
+
+networks:
+  ssapp-network:

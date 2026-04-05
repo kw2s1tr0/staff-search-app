@@ -10,19 +10,10 @@ services:
         source: ../
         target: /ssapp
       - type: bind
-        source: ./php/.conf
-        target: /etc/apache2/site-enabled/000-default.conf
-      - type: volume
-        source: ssapp-storage
-        target: /var/www/html/storage
-      - type: volume
-        source: ssapp-vendor
-        target: /var/www/html/vendor
-      - type: volume
-        source: ssapp-cache
-        target: /var/www/html/bootstrap/cache
+        source: ./php/default.conf
+        target: /etc/apache2/sites-enabled/000-default.conf
     ports:
-      - "8000:80"
+      - "80:80"
     depends_on:
       - mysql
     networks:

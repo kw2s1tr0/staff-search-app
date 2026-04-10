@@ -12,8 +12,12 @@ services:
       - type: bind
         source: ./php/default.conf
         target: /etc/apache2/sites-enabled/000-default.conf
+      - type: volume
+        source: ssapp-vendor
+        target: /ssapp/my-app/vendor
     ports:
       - "80:80"
+    tty: true
     depends_on:
       - mysql
     networks:
@@ -40,13 +44,29 @@ services:
         target: /docker-entrypoint-initdb.d/init.sql
     networks:
       - ssapp-network
-
+    
+  node:
+    container_name: ssapp-node
+    build:
+      context: ../
+      dockerfile: Docker/node/Dockerfile
+    volumes:
+      - type: bind
+        source: ../
+        target: /ssapp
+      - type: volume
+        source: node_modules
+        target: /ssapp/my-app/node_modules
+    ports:
+      - "5173:5173"
+    tty: true
+    networks:
+      - ssapp-network
 
 volumes:
-  ssapp-storage:
-  ssapp-vendor:
-  ssapp-cache:
+  node_modules:
   mysql-data:
+  ssapp-vendor:
 
 networks:
   ssapp-network:

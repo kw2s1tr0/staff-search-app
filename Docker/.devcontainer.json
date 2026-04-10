@@ -7,7 +7,9 @@
         "vscode": {
             "extensions": [
                 "xdebug.php-debug",
-                "bmewburn.vscode-intelephense-client"
+                "bmewburn.vscode-intelephense-client",
+                "openai.chatgpt",
+                "GitHub.copilot-chat"
             ]
             
         }

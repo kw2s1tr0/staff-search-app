@@ -10,7 +10,7 @@
 ## 追加対象
 - `docs/instructions/ai-working-rules.md`
 - `docs/shared/project-context.md`
-- `docs/skills/laravel-development.md`
+- `.agents/skills/laravel-repo-sample/SKILL.md`
 - `docs/workbench/2026-04-10-docs-initialization.md`
 
 ## 補足

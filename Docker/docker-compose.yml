@@ -15,15 +15,14 @@ services:
       - type: volume
         source: ssapp-vendor
         target: /ssapp/my-app/vendor
+      - type: volume
+        source: node_modules
+        target: /ssapp/my-app/node_modules
     ports:
       - "80:80"
+      - "5173:5173"
     tty: true
-    environment:
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - DB_DATABASE=mysql
-      - DB_USERNAME=mysql
-      - DB_PASSWORD=password
+    # environment:
       # - XDEBUG_MODE=debug
     depends_on:
       - mysql
@@ -49,24 +48,6 @@ services:
       - type: bind
         source: ./mysql/init.sql
         target: /docker-entrypoint-initdb.d/init.sql
-    networks:
-      - ssapp-network
-    
-  node:
-    container_name: ssapp-node
-    build:
-      context: ../
-      dockerfile: Docker/node/Dockerfile
-    volumes:
-      - type: bind
-        source: ../
-        target: /ssapp
-      - type: volume
-        source: node_modules
-        target: /ssapp/my-app/node_modules
-    ports:
-      - "5173:5173"
-    tty: true
     networks:
       - ssapp-network
 

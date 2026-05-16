@@ -1,0 +1,147 @@
+# Project execpolicy rules for /ssapp.
+# Rules use Starlark prefix_rule entries. Keep allow rules narrow and include
+# match / not_match examples so policy mistakes are easier to spot.
+
+prefix_rule(
+    pattern = ["pwd"],
+    decision = "allow",
+    justification = "Reading the current working directory is safe.",
+    match = ["pwd"],
+    not_match = ["pwdx"],
+)
+
+prefix_rule(
+    pattern = ["ls"],
+    decision = "allow",
+    justification = "Listing files is safe.",
+    match = ["ls", "ls -la"],
+    not_match = ["bash -lc ls"],
+)
+
+prefix_rule(
+    pattern = ["find"],
+    decision = "allow",
+    justification = "Finding files is safe when scoped to the workspace.",
+    match = ["find . -maxdepth 2 -type f"],
+    not_match = ["xargs find"],
+)
+
+prefix_rule(
+    pattern = ["rg"],
+    decision = "allow",
+    justification = "Ripgrep is the preferred repository search tool.",
+    match = ["rg TODO", "rg --files"],
+    not_match = ["grep TODO"],
+)
+
+prefix_rule(
+    pattern = ["sed"],
+    decision = "allow",
+    justification = "Reading file excerpts is safe.",
+    match = ["sed -n '1,120p' AGENTS.md"],
+    not_match = ["perl -pi -e s/foo/bar/ AGENTS.md"],
+)
+
+prefix_rule(
+    pattern = ["git", "status"],
+    decision = "allow",
+    justification = "Git status is read-only.",
+    match = ["git status", "git status --short"],
+    not_match = ["git add ."],
+)
+
+prefix_rule(
+    pattern = ["git", "diff"],
+    decision = "allow",
+    justification = "Git diff is read-only.",
+    match = ["git diff", "git diff -- AGENTS.md"],
+    not_match = ["git apply patch.diff"],
+)
+
+prefix_rule(
+    pattern = ["git", "log"],
+    decision = "allow",
+    justification = "Git log is read-only.",
+    match = ["git log --oneline -5"],
+    not_match = ["git reset --hard HEAD~1"],
+)
+
+prefix_rule(
+    pattern = ["composer", "test"],
+    decision = "allow",
+    justification = "Running the Laravel test suite is normal verification.",
+    match = ["composer test"],
+    not_match = ["composer install"],
+)
+
+prefix_rule(
+    pattern = ["composer", "qa"],
+    decision = "allow",
+    justification = "Running QA checks is normal verification.",
+    match = ["composer qa"],
+    not_match = ["composer update"],
+)
+
+prefix_rule(
+    pattern = ["npm", "run", "build"],
+    decision = "allow",
+    justification = "Building frontend assets is normal verification.",
+    match = ["npm run build"],
+    not_match = ["npm install"],
+)
+
+prefix_rule(
+    pattern = ["composer", "install"],
+    decision = "prompt",
+    justification = "Dependency installation may access the network and change lock/vendor state.",
+    match = ["composer install"],
+    not_match = ["composer test"],
+)
+
+prefix_rule(
+    pattern = ["npm", "install"],
+    decision = "prompt",
+    justification = "Dependency installation may access the network and change node_modules/package-lock.",
+    match = ["npm install"],
+    not_match = ["npm run build"],
+)
+
+prefix_rule(
+    pattern = ["docker", "compose", "build"],
+    decision = "prompt",
+    justification = "Docker builds may access the network and create large local artifacts.",
+    match = ["docker compose build"],
+    not_match = ["docker compose ps"],
+)
+
+prefix_rule(
+    pattern = ["php", "artisan", "migrate"],
+    decision = "prompt",
+    justification = "Migrations can modify database state.",
+    match = ["php artisan migrate"],
+    not_match = ["php artisan test"],
+)
+
+prefix_rule(
+    pattern = ["rm"],
+    decision = "forbidden",
+    justification = "File deletion must be explicitly requested by the user.",
+    match = ["rm AGENTS.md", "rm -rf vendor"],
+    not_match = ["rmdir empty-dir"],
+)
+
+prefix_rule(
+    pattern = ["git", "reset"],
+    decision = "forbidden",
+    justification = "Reset can discard user work.",
+    match = ["git reset --hard HEAD", "git reset HEAD~1"],
+    not_match = ["git status"],
+)
+
+prefix_rule(
+    pattern = ["git", "clean"],
+    decision = "forbidden",
+    justification = "Clean can delete untracked user files.",
+    match = ["git clean -fd"],
+    not_match = ["git status --short"],
+)

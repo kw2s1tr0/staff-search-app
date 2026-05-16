@@ -7,13 +7,10 @@
         "vscode": {
             "extensions": [
                 "xdebug.php-debug",
-                "bmewburn.vscode-intelephense-client",
-                "openai.chatgpt",
-                "GitHub.copilot-chat"
+                "bmewburn.vscode-intelephense-client"
             ]
             
         }
     },
     "forwardPorts": [9003]
-    
 }

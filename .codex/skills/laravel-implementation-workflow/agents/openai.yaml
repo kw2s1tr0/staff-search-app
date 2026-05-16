@@ -1,0 +1,4 @@
+interface:
+  display_name: "Laravel 実装ワークフロー"
+  short_description: "Laravel実装の調査・設計・レビュー・検証を標準化"
+  default_prompt: "Use $laravel-implementation-workflow to implement a Laravel change with Japanese task sizing, role checks, and verification."

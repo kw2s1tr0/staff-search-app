@@ -18,6 +18,9 @@ services:
       - type: volume
         source: node_modules
         target: /ssapp/my-app/node_modules
+      - type: volume
+        source: codex-data
+        target: /root/.codex
     ports:
       - "80:80"
       - "5173:5173"
@@ -55,6 +58,7 @@ volumes:
   node_modules:
   mysql-data:
   ssapp-vendor:
+  codex-data:
 
 networks:
   ssapp-network:

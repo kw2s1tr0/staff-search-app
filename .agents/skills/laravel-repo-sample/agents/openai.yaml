@@ -1,3 +1,0 @@
-display_name: Laravel Repo Sample
-short_description: Laravel 作業時のローカル手順と確認観点をまとめたサンプルです。
-default_prompt: このリポジトリで Laravel 関連の変更を行います。my-app 配下の構成、ローカル文書、既存実装パターンを尊重して進めてください。

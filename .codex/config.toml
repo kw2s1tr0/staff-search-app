@@ -1,25 +1,4 @@
-# このリポジトリで Codex を使う際の推奨設定です。
-# 既定は安全側に寄せ、実装作業で書き込みが必要な場合だけ CLI オプションで権限を上げます。
+sandbox_mode = "danger-full-access"
+approval_policy = "on-request"
 
-model = "gpt-5.5"
-model_reasoning_effort = "medium"
-
-
-# Web 検索は必要なタスクでだけ明示的に有効化します。
-search = true
-
-[shell_environment_policy]
-# 開発コマンドに必要な標準的な環境変数のみを引き継ぎます。
-inherit = "core"
-
-[features]
-# AGENTS.md と docs/ai/* の運用を前提に、安定機能のみ有効にします。
-plugins = true
-workspace_dependencies = true
-tool_search = true
-
-# エージェントのスレッド数と探索深度
-[agents]
-max_threads = 6
-max_depth = 1
-
+approvals_reviewer = "auto_review"

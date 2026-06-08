@@ -14,10 +14,10 @@ services:
         target: /etc/apache2/sites-enabled/000-default.conf
       - type: volume
         source: ssapp-vendor
-        target: /ssapp/my-app/vendor
+        target: /ssapp/app/vendor
       - type: volume
         source: node_modules
-        target: /ssapp/my-app/node_modules
+        target: /ssapp/app/node_modules
       - type: volume
         source: codex-data
         target: /root/.codex
@@ -39,7 +39,7 @@ services:
       dockerfile: Dockerfile
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: mysql
+      MYSQL_DATABASE: employee_search
       MYSQL_USER: mysql
       MYSQL_PASSWORD: password
     ports:

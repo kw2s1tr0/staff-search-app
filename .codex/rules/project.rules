@@ -1,147 +1,644 @@
-# Project execpolicy rules for /ssapp.
-# Rules use Starlark prefix_rule entries. Keep allow rules narrow and include
-# match / not_match examples so policy mistakes are easier to spot.
+# Block common network-capable and destructive commands in this repository.
+
+NETWORK_COMMANDS = [
+    "apt",
+    "apt-get",
+    "apt-update",
+    "aptitude",
+    "curl",
+    "dig",
+    "ftp",
+    "host",
+    "lftp",
+    "mysql",
+    "nc",
+    "ncat",
+    "netcat",
+    "nslookup",
+    "ping",
+    "psql",
+    "rsync",
+    "scp",
+    "sftp",
+    "ssh",
+    "telnet",
+    "traceroute",
+    "wget",
+    "whois",
+]
+
+GIT_NETWORK_SUBCOMMANDS = [
+    "clone",
+    "fetch",
+    "ls-remote",
+    "pull",
+    "push",
+    "submodule",
+]
+
+COMPOSER_NETWORK_SUBCOMMANDS = [
+    "create-project",
+    "global",
+    "install",
+    "require",
+    "self-update",
+    "update",
+]
+
+NPM_NETWORK_SUBCOMMANDS = [
+    "add",
+    "ci",
+    "exec",
+    "install",
+    "i",
+    "outdated",
+    "publish",
+    "update",
+    "upgrade",
+]
+
+DOCKER_NETWORK_SUBCOMMANDS = [
+    "build",
+    "login",
+    "pull",
+    "push",
+    "run",
+]
+
+DOCKER_COMPOSE_NETWORK_SUBCOMMANDS = [
+    "build",
+    "pull",
+]
+
+PIP_NETWORK_SUBCOMMANDS = [
+    "download",
+    "install",
+]
+
+PACKAGE_MANAGER_COMMANDS = [
+    "bun",
+    "pnpm",
+    "yarn",
+]
+
+CLOUD_AND_HOSTING_COMMANDS = [
+    "aws",
+    "az",
+    "flyctl",
+    "gcloud",
+    "gh",
+    "heroku",
+    "netlify",
+    "vercel",
+]
+
+FILE_DESTRUCTIVE_COMMANDS = [
+    "dd",
+    "mv",
+    "rm",
+    "rmdir",
+    "shred",
+    "truncate",
+]
+
+PERMISSION_COMMANDS = [
+    "chmod",
+    "chown",
+    "chgrp",
+]
+
+PROCESS_DESTRUCTIVE_COMMANDS = [
+    "kill",
+    "killall",
+    "pkill",
+]
+
+SENSITIVE_READ_COMMANDS = [
+    "cat",
+    "head",
+    "less",
+    "more",
+    "tail",
+]
+
+GIT_DESTRUCTIVE_SUBCOMMANDS = [
+    "checkout",
+    "clean",
+    "rebase",
+    "reset",
+    "restore",
+]
+
+DOCKER_DESTRUCTIVE_SUBCOMMANDS = [
+    "kill",
+    "restart",
+    "rm",
+    "rmi",
+    "stop",
+    "volume",
+]
+
+DOCKER_COMPOSE_DESTRUCTIVE_SUBCOMMANDS = [
+    "down",
+    "kill",
+    "restart",
+    "rm",
+    "stop",
+]
+
+ARTISAN_DESTRUCTIVE_SUBCOMMANDS = [
+    "db:wipe",
+    "migrate:fresh",
+    "migrate:refresh",
+    "migrate:reset",
+    "migrate:rollback",
+]
+
+SENSITIVE_FILES = [
+    ".env",
+    ".env.backup",
+    ".env.local",
+    ".env.production",
+    ".npmrc",
+    "auth.json",
+]
 
 prefix_rule(
-    pattern = ["pwd"],
-    decision = "allow",
-    justification = "Reading the current working directory is safe.",
-    match = ["pwd"],
-    not_match = ["pwdx"],
-)
-
-prefix_rule(
-    pattern = ["ls"],
-    decision = "allow",
-    justification = "Listing files is safe.",
-    match = ["ls", "ls -la"],
-    not_match = ["bash -lc ls"],
-)
-
-prefix_rule(
-    pattern = ["find"],
-    decision = "allow",
-    justification = "Finding files is safe when scoped to the workspace.",
-    match = ["find . -maxdepth 2 -type f"],
-    not_match = ["xargs find"],
-)
-
-prefix_rule(
-    pattern = ["rg"],
-    decision = "allow",
-    justification = "Ripgrep is the preferred repository search tool.",
-    match = ["rg TODO", "rg --files"],
-    not_match = ["grep TODO"],
-)
-
-prefix_rule(
-    pattern = ["sed"],
-    decision = "allow",
-    justification = "Reading file excerpts is safe.",
-    match = ["sed -n '1,120p' AGENTS.md"],
-    not_match = ["perl -pi -e s/foo/bar/ AGENTS.md"],
-)
-
-prefix_rule(
-    pattern = ["git", "status"],
-    decision = "allow",
-    justification = "Git status is read-only.",
-    match = ["git status", "git status --short"],
-    not_match = ["git add ."],
-)
-
-prefix_rule(
-    pattern = ["git", "diff"],
-    decision = "allow",
-    justification = "Git diff is read-only.",
-    match = ["git diff", "git diff -- AGENTS.md"],
-    not_match = ["git apply patch.diff"],
-)
-
-prefix_rule(
-    pattern = ["git", "log"],
-    decision = "allow",
-    justification = "Git log is read-only.",
-    match = ["git log --oneline -5"],
-    not_match = ["git reset --hard HEAD~1"],
-)
-
-prefix_rule(
-    pattern = ["composer", "test"],
-    decision = "allow",
-    justification = "Running the Laravel test suite is normal verification.",
-    match = ["composer test"],
-    not_match = ["composer install"],
-)
-
-prefix_rule(
-    pattern = ["composer", "qa"],
-    decision = "allow",
-    justification = "Running QA checks is normal verification.",
-    match = ["composer qa"],
-    not_match = ["composer update"],
-)
-
-prefix_rule(
-    pattern = ["npm", "run", "build"],
-    decision = "allow",
-    justification = "Building frontend assets is normal verification.",
-    match = ["npm run build"],
-    not_match = ["npm install"],
-)
-
-prefix_rule(
-    pattern = ["composer", "install"],
-    decision = "prompt",
-    justification = "Dependency installation may access the network and change lock/vendor state.",
-    match = ["composer install"],
-    not_match = ["composer test"],
-)
-
-prefix_rule(
-    pattern = ["npm", "install"],
-    decision = "prompt",
-    justification = "Dependency installation may access the network and change node_modules/package-lock.",
-    match = ["npm install"],
-    not_match = ["npm run build"],
-)
-
-prefix_rule(
-    pattern = ["docker", "compose", "build"],
-    decision = "prompt",
-    justification = "Docker builds may access the network and create large local artifacts.",
-    match = ["docker compose build"],
-    not_match = ["docker compose ps"],
-)
-
-prefix_rule(
-    pattern = ["php", "artisan", "migrate"],
-    decision = "prompt",
-    justification = "Migrations can modify database state.",
-    match = ["php artisan migrate"],
-    not_match = ["php artisan test"],
-)
-
-prefix_rule(
-    pattern = ["rm"],
+    pattern = [NETWORK_COMMANDS],
     decision = "forbidden",
-    justification = "File deletion must be explicitly requested by the user.",
-    match = ["rm AGENTS.md", "rm -rf vendor"],
-    not_match = ["rmdir empty-dir"],
+    justification = "Network-capable commands are blocked in this repository; use Codex web search for lookup-only tasks.",
+    match = [
+        "curl https://example.com",
+        "wget https://example.com/file",
+        "apt update",
+        "apt-get install curl",
+        "apt-update",
+        "ssh git@github.com",
+        "psql -h db.example.com",
+        "mysql -h db.example.com",
+        "rsync -av ./ user@example.com:/tmp/",
+        "nc example.com 443",
+        "dig example.com",
+        "ping example.com",
+    ],
+    not_match = [
+        "sed -n 1,20p AGENTS.md",
+        "git diff -- AGENTS.md",
+    ],
 )
 
 prefix_rule(
-    pattern = ["git", "reset"],
+    pattern = ["sudo", NETWORK_COMMANDS],
     decision = "forbidden",
-    justification = "Reset can discard user work.",
-    match = ["git reset --hard HEAD", "git reset HEAD~1"],
-    not_match = ["git status"],
+    justification = "Network-capable commands are blocked in this repository, including sudo-prefixed invocations.",
+    match = [
+        "sudo apt update",
+        "sudo curl https://example.com",
+    ],
 )
 
 prefix_rule(
-    pattern = ["git", "clean"],
+    pattern = [FILE_DESTRUCTIVE_COMMANDS],
     decision = "forbidden",
-    justification = "Clean can delete untracked user files.",
-    match = ["git clean -fd"],
-    not_match = ["git status --short"],
+    justification = "File deletion or destructive file rewriting must be explicitly requested by the user.",
+    match = [
+        "rm AGENTS.md",
+        "rm -rf vendor",
+        "mv app/Http/Controllers old-controllers",
+        "dd if=/dev/zero of=.env",
+        "rmdir empty-dir",
+        "truncate -s 0 storage/logs/laravel.log",
+        "shred .env",
+    ],
+    not_match = [
+        "sed -n 1,20p AGENTS.md",
+        "git diff -- AGENTS.md",
+    ],
+)
+
+prefix_rule(
+    pattern = ["sudo", FILE_DESTRUCTIVE_COMMANDS],
+    decision = "forbidden",
+    justification = "File deletion or destructive file rewriting is blocked, including sudo-prefixed invocations.",
+    match = [
+        "sudo rm -rf vendor",
+        "sudo mv app/Http/Controllers old-controllers",
+        "sudo truncate -s 0 storage/logs/laravel.log",
+    ],
+)
+
+prefix_rule(
+    pattern = [PERMISSION_COMMANDS],
+    decision = "forbidden",
+    justification = "Ownership and permission changes can break the local workspace and must be explicitly requested by the user.",
+    match = [
+        "chmod -R 777 storage",
+        "chown -R www-data:www-data .",
+        "chgrp -R www-data storage",
+    ],
+)
+
+prefix_rule(
+    pattern = ["sudo", PERMISSION_COMMANDS],
+    decision = "forbidden",
+    justification = "Ownership and permission changes are blocked, including sudo-prefixed invocations.",
+    match = [
+        "sudo chmod -R 777 storage",
+        "sudo chown -R www-data:www-data .",
+    ],
+)
+
+prefix_rule(
+    pattern = [PROCESS_DESTRUCTIVE_COMMANDS],
+    decision = "forbidden",
+    justification = "Killing processes can interrupt unrelated user work and must be explicitly requested by the user.",
+    match = [
+        "kill 1234",
+        "pkill php",
+        "killall node",
+    ],
+)
+
+prefix_rule(
+    pattern = ["sudo", PROCESS_DESTRUCTIVE_COMMANDS],
+    decision = "forbidden",
+    justification = "Killing processes is blocked, including sudo-prefixed invocations.",
+    match = [
+        "sudo kill 1234",
+        "sudo pkill php",
+    ],
+)
+
+prefix_rule(
+    pattern = ["git", GIT_NETWORK_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Git network operations are blocked in this repository; use local git inspection commands only.",
+    match = [
+        "git pull",
+        "git fetch origin",
+        "git clone https://github.com/openai/codex",
+        "git ls-remote origin",
+    ],
+    not_match = [
+        "git diff -- AGENTS.md",
+        "git status --short",
+        "git log --oneline -5",
+    ],
+)
+
+prefix_rule(
+    pattern = ["git", GIT_DESTRUCTIVE_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Git commands that can discard or rewrite work are blocked; inspect with git status, diff, and log instead.",
+    match = [
+        "git reset --hard HEAD",
+        "git clean -fd",
+        "git restore .",
+        "git checkout -- AGENTS.md",
+        "git rebase main",
+    ],
+    not_match = [
+        "git diff -- AGENTS.md",
+        "git status --short",
+        "git log --oneline -5",
+    ],
+)
+
+prefix_rule(
+    pattern = ["sudo", "git", GIT_DESTRUCTIVE_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Git commands that can discard or rewrite work are blocked, including sudo-prefixed invocations.",
+    match = [
+        "sudo git reset --hard HEAD",
+        "sudo git clean -fd",
+    ],
+)
+
+prefix_rule(
+    pattern = ["sudo", "git", GIT_NETWORK_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Git network operations are blocked in this repository, including sudo-prefixed invocations.",
+    match = [
+        "sudo git pull",
+        "sudo git fetch origin",
+    ],
+)
+
+prefix_rule(
+    pattern = [SENSITIVE_READ_COMMANDS, SENSITIVE_FILES],
+    decision = "forbidden",
+    justification = "Sensitive configuration files may contain secrets and must not be printed into the conversation.",
+    match = [
+        "cat .env",
+        "head .env",
+        "tail .env",
+        "less .npmrc",
+        "more auth.json",
+    ],
+    not_match = [
+        "cat README.md",
+        "cat composer.json",
+    ],
+)
+
+prefix_rule(
+    pattern = ["php", "artisan", ARTISAN_DESTRUCTIVE_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Destructive Laravel database commands are blocked unless the user explicitly requests database reset work.",
+    match = [
+        "php artisan migrate:fresh",
+        "php artisan migrate:rollback",
+        "php artisan db:wipe",
+    ],
+    not_match = [
+        "php artisan test",
+        "php artisan migrate:status",
+    ],
+)
+
+prefix_rule(
+    pattern = [CLOUD_AND_HOSTING_COMMANDS],
+    decision = "forbidden",
+    justification = "Cloud, hosting, and GitHub CLIs can read from or modify external services, so they are blocked in this repository.",
+    match = [
+        "gh repo clone owner/repo",
+        "gh pr view",
+        "aws s3 ls",
+        "gcloud auth login",
+        "vercel deploy",
+        "netlify deploy",
+    ],
+)
+
+prefix_rule(
+    pattern = ["sudo", CLOUD_AND_HOSTING_COMMANDS],
+    decision = "forbidden",
+    justification = "Cloud, hosting, and GitHub CLIs are blocked in this repository, including sudo-prefixed invocations.",
+    match = [
+        "sudo gh auth login",
+        "sudo aws s3 ls",
+    ],
+)
+
+prefix_rule(
+    pattern = ["composer", COMPOSER_NETWORK_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Composer operations that install, update, or download packages are blocked in this repository.",
+    match = [
+        "composer install",
+        "composer update",
+        "composer require laravel/sail",
+        "composer create-project laravel/laravel example-app",
+    ],
+    not_match = [
+        "composer test",
+        "composer qa",
+        "composer format",
+        "composer format:check",
+    ],
+)
+
+prefix_rule(
+    pattern = ["sudo", "composer", COMPOSER_NETWORK_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Composer network operations are blocked in this repository, including sudo-prefixed invocations.",
+    match = [
+        "sudo composer install",
+        "sudo composer update",
+    ],
+)
+
+prefix_rule(
+    pattern = ["npm", NPM_NETWORK_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "NPM operations that install, update, execute remote packages, or publish are blocked in this repository.",
+    match = [
+        "npm install",
+        "npm i",
+        "npm ci",
+        "npm update",
+        "npm exec vite",
+        "npm publish",
+    ],
+    not_match = [
+        "npm run build",
+        "npm run dev",
+        "npm test",
+    ],
+)
+
+prefix_rule(
+    pattern = ["sudo", "npm", NPM_NETWORK_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "NPM network operations are blocked in this repository, including sudo-prefixed invocations.",
+    match = [
+        "sudo npm install",
+        "sudo npm update",
+    ],
+)
+
+prefix_rule(
+    pattern = ["npx"],
+    decision = "forbidden",
+    justification = "npx can download and execute packages, so it is blocked in this repository.",
+    match = [
+        "npx vite",
+        "npx create-vite",
+    ],
+)
+
+prefix_rule(
+    pattern = ["sudo", "npx"],
+    decision = "forbidden",
+    justification = "npx can download and execute packages, so sudo-prefixed invocations are also blocked.",
+    match = [
+        "sudo npx vite",
+        "sudo npx create-vite",
+    ],
+)
+
+prefix_rule(
+    pattern = [PACKAGE_MANAGER_COMMANDS],
+    decision = "forbidden",
+    justification = "Alternative package managers can install, update, publish, or execute packages from the network, so they are blocked in this repository.",
+    match = [
+        "yarn install",
+        "pnpm add vite",
+        "bun install",
+    ],
+)
+
+prefix_rule(
+    pattern = ["sudo", PACKAGE_MANAGER_COMMANDS],
+    decision = "forbidden",
+    justification = "Alternative package managers are blocked in this repository, including sudo-prefixed invocations.",
+    match = [
+        "sudo yarn install",
+        "sudo pnpm install",
+        "sudo bun install",
+    ],
+)
+
+prefix_rule(
+    pattern = ["pip", PIP_NETWORK_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Python package operations that install or download packages are blocked in this repository.",
+    match = [
+        "pip install requests",
+        "pip download requests",
+    ],
+)
+
+prefix_rule(
+    pattern = ["pip3", PIP_NETWORK_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Python package operations that install or download packages are blocked in this repository.",
+    match = [
+        "pip3 install requests",
+        "pip3 download requests",
+    ],
+)
+
+prefix_rule(
+    pattern = ["python", "-m", "pip", PIP_NETWORK_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Python package operations are blocked in this repository, including python -m pip invocations.",
+    match = [
+        "python -m pip install requests",
+        "python -m pip download requests",
+    ],
+)
+
+prefix_rule(
+    pattern = ["python3", "-m", "pip", PIP_NETWORK_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Python package operations are blocked in this repository, including python3 -m pip invocations.",
+    match = [
+        "python3 -m pip install requests",
+        "python3 -m pip download requests",
+    ],
+)
+
+prefix_rule(
+    pattern = ["docker", DOCKER_NETWORK_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Docker operations that may pull, push, build from remote sources, or start unreviewed images are blocked in this repository.",
+    match = [
+        "docker pull mysql:8.0",
+        "docker push example/image",
+        "docker login",
+        "docker build .",
+        "docker run --rm alpine",
+    ],
+    not_match = [
+        "docker ps",
+        "docker images",
+    ],
+)
+
+prefix_rule(
+    pattern = ["sudo", "docker", DOCKER_NETWORK_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Docker network operations are blocked in this repository, including sudo-prefixed invocations.",
+    match = [
+        "sudo docker pull mysql:8.0",
+        "sudo docker build .",
+    ],
+)
+
+prefix_rule(
+    pattern = ["docker", DOCKER_DESTRUCTIVE_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Docker commands that stop or delete containers, images, or volumes are blocked unless explicitly requested.",
+    match = [
+        "docker stop ssapp-app",
+        "docker rm ssapp-app",
+        "docker rmi mysql:8.0",
+        "docker volume rm ssapp-data",
+        "docker kill ssapp-app",
+    ],
+    not_match = [
+        "docker ps",
+        "docker images",
+    ],
+)
+
+prefix_rule(
+    pattern = ["sudo", "docker", DOCKER_DESTRUCTIVE_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Docker destructive operations are blocked, including sudo-prefixed invocations.",
+    match = [
+        "sudo docker stop ssapp-app",
+        "sudo docker rm ssapp-app",
+    ],
+)
+
+prefix_rule(
+    pattern = ["docker", "system", "prune"],
+    decision = "forbidden",
+    justification = "Docker prune can delete local images, containers, and caches and must be explicitly requested by the user.",
+    match = [
+        "docker system prune",
+        "docker system prune -a",
+    ],
+)
+
+prefix_rule(
+    pattern = ["sudo", "docker", "system", "prune"],
+    decision = "forbidden",
+    justification = "Docker prune is blocked, including sudo-prefixed invocations.",
+    match = [
+        "sudo docker system prune",
+        "sudo docker system prune -a",
+    ],
+)
+
+prefix_rule(
+    pattern = ["docker", "compose", DOCKER_COMPOSE_NETWORK_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Docker Compose pull and build can contact external registries or package mirrors, so they are blocked in this repository.",
+    match = [
+        "docker compose pull",
+        "docker compose build",
+    ],
+    not_match = [
+        "docker compose up -d",
+        "docker compose ps",
+    ],
+)
+
+prefix_rule(
+    pattern = ["docker", "compose", DOCKER_COMPOSE_DESTRUCTIVE_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Docker Compose commands that stop or delete services are blocked unless explicitly requested.",
+    match = [
+        "docker compose down",
+        "docker compose rm",
+        "docker compose stop",
+        "docker compose restart",
+    ],
+    not_match = [
+        "docker compose up -d",
+        "docker compose ps",
+    ],
+)
+
+prefix_rule(
+    pattern = ["sudo", "docker", "compose", DOCKER_COMPOSE_NETWORK_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Docker Compose network operations are blocked in this repository, including sudo-prefixed invocations.",
+    match = [
+        "sudo docker compose pull",
+        "sudo docker compose build",
+    ],
+)
+
+prefix_rule(
+    pattern = ["sudo", "docker", "compose", DOCKER_COMPOSE_DESTRUCTIVE_SUBCOMMANDS],
+    decision = "forbidden",
+    justification = "Docker Compose destructive operations are blocked, including sudo-prefixed invocations.",
+    match = [
+        "sudo docker compose down",
+        "sudo docker compose rm",
+    ],
 )

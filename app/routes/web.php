@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\EmployeeController;
+use App\Http\Controllers\Api\Employee\EmployeeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -8,4 +8,4 @@ Route::get('/', function () {
 });
 
 Route::apiResource('employees', EmployeeController::class)
-    ->only(['index', 'show']);
+    ->only(['index']);

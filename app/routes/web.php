@@ -18,6 +18,8 @@ Route::middleware('guest')->group(function (): void {
 Route::middleware('auth.web')->group(function (): void {
     Route::get('employees', [EmployeeController::class, 'index'])
         ->name('employees.index');
+    Route::get('employees/results', [EmployeeController::class, 'results'])
+        ->name('employees.results');
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
 });

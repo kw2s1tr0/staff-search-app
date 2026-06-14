@@ -70,7 +70,12 @@ class EmployeeSearchTemplateTest extends TestCase
             ->assertSeeText('Engineer')
             ->assertSeeText($employee->email)
             ->assertSeeText('1 件')
-            ->assertSeeText('在籍');
+            ->assertSeeText('在籍')
+            ->assertSee('hx-get="'.route('employees.results').'"', false)
+            ->assertSee('hx-target="#employee-search-results"', false)
+            ->assertSee('hx-swap="outerHTML"', false)
+            ->assertSee('type="button"', false)
+            ->assertSee('data-employee-search-clear', false);
     }
 
     public function test_employee_index_applies_search_conditions(): void
@@ -191,5 +196,60 @@ class EmployeeSearchTemplateTest extends TestCase
         $response
             ->assertRedirect()
             ->assertSessionHasErrors(['department_id', 'employment_status']);
+    }
+
+    public function test_employee_results_returns_the_matching_partial_for_htmx(): void
+    {
+        $this->withoutVite();
+
+        $matchedEmployee = Employee::factory()->create([
+            'family_name' => 'Yamada',
+            'employment_status' => EmploymentStatus::Active,
+        ]);
+        $otherEmployee = Employee::factory()->create([
+            'family_name' => 'Sato',
+            'employment_status' => EmploymentStatus::Leave,
+        ]);
+
+        $query = http_build_query([
+            'keyword' => 'Yamada',
+            'department_id' => $matchedEmployee->department_id,
+            'position_id' => $matchedEmployee->position_id,
+            'employment_status' => EmploymentStatus::Active->value,
+        ]);
+        $response = $this->get('/employees/results?'.$query, [
+            'HX-Request' => 'true',
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertHeader('content-type', 'text/html; charset=UTF-8')
+            ->assertHeader('HX-Replace-Url', '/employees?'.$query)
+            ->assertViewIs('employees.partials.search-response')
+            ->assertViewHas('employees', function (array $employees) use ($matchedEmployee): bool {
+                return count($employees) === 1
+                    && $employees[0]->employeeNumber === $matchedEmployee->employee_number;
+            })
+            ->assertSeeText($matchedEmployee->email)
+            ->assertDontSeeText($otherEmployee->email)
+            ->assertSee('id="employee-search-results"', false)
+            ->assertSee('hx-swap-oob="outerHTML"', false)
+            ->assertDontSee('<html', false)
+            ->assertDontSee('id="employee-search-form"', false);
+    }
+
+    public function test_employee_results_returns_an_empty_partial_and_clears_the_search_url(): void
+    {
+        $this->withoutVite();
+
+        $response = $this->get('/employees/results', [
+            'HX-Request' => 'true',
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertHeader('HX-Replace-Url', '/employees')
+            ->assertSeeText('0 件')
+            ->assertSeeText('該当する社員が見つかりませんでした');
     }
 }

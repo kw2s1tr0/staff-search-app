@@ -14,9 +14,11 @@ use App\Enums\PositionOrderBy;
 use App\Http\Controllers\Controller;
 use App\Http\Dto\Web\Department\Search\Builder\SearchDtoBuilder as DepartmentSearchDtoBuilder;
 use App\Http\Dto\Web\Employee\Search\Builder\SearchDtoBuilder;
+use App\Http\Dto\Web\Employee\Search\EmployeeSearchDto;
 use App\Http\Dto\Web\Position\Search\Builder\SearchDtoBuilder as PositionSearchDtoBuilder;
 use App\Http\Requests\Web\Employee\Index\IndexRequest;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\Response;
 
 /**
  * Web画面の社員検索リクエストを処理し、一覧表示に必要な値をViewへ渡す。
@@ -39,9 +41,7 @@ class EmployeeController extends Controller
     public function index(IndexRequest $request): View
     {
         $validated = $request->validated();
-        $input = $this->searchInputBuilder->build($validated);
-        $output = $this->searchService->execute($input);
-        $employees = $this->searchDtoBuilder->build($output);
+        $employees = $this->searchEmployees($validated);
 
         $departmentInput = new DepartmentSearchInput(
             orderBy: DepartmentOrderBy::Id,
@@ -62,5 +62,51 @@ class EmployeeController extends Controller
             'departments' => $departments,
             'positions' => $positions,
         ]);
+    }
+
+    /**
+     * htmxからの検索要求へ、差し替え対象のHTMLだけを返す。
+     */
+    public function results(IndexRequest $request): Response
+    {
+        $validated = $request->validated();
+        $employees = $this->searchEmployees($validated);
+        $employeeIndexUrl = $this->buildEmployeeIndexUrl($validated);
+
+        return response()
+            ->view('employees.partials.search-response', [
+                'employees' => $employees,
+            ])
+            ->header('HX-Replace-Url', $employeeIndexUrl);
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return list<EmployeeSearchDto>
+     */
+    private function searchEmployees(array $validated): array
+    {
+        $input = $this->searchInputBuilder->build($validated);
+        $output = $this->searchService->execute($input);
+
+        return $this->searchDtoBuilder->build($output);
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function buildEmployeeIndexUrl(array $validated): string
+    {
+        $query = array_filter(
+            $validated,
+            static fn (mixed $value): bool => $value !== null && $value !== '',
+        );
+        $employeeIndexUrl = route('employees.index', absolute: false);
+
+        if ($query === []) {
+            return $employeeIndexUrl;
+        }
+
+        return $employeeIndexUrl.'?'.http_build_query($query);
     }
 }

@@ -33,6 +33,16 @@ class WebAuthenticationTest extends TestCase
         $response->assertRedirectToRoute('login');
     }
 
+    public function test_guest_is_redirected_to_login_from_employee_results(): void
+    {
+        $response = $this->get('/employees/results', [
+            'Accept' => 'text/html',
+            'HX-Request' => 'true',
+        ]);
+
+        $response->assertRedirectToRoute('login');
+    }
+
     public function test_user_can_log_in_with_valid_credentials(): void
     {
         $user = User::factory()->create([

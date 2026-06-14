@@ -57,14 +57,21 @@
                         </p>
                     </div>
                 </div>
-                <p class="mt-4 inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-600 sm:mt-0">
+                <p id="employee-count-summary" class="mt-4 inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-600 sm:mt-0">
                     <span class="mr-1 font-semibold tabular-nums text-slate-950">{{ count($employees) }}</span> 件
                 </p>
             </div>
 
-            <section id="employee-results">
+            <section>
                 <div class="mb-4 rounded-md border border-slate-200 bg-slate-50 p-4">
-                    <form id="employee-search-form" method="GET" action="{{ route('employees.index') }}">
+                    <form
+                        id="employee-search-form"
+                        method="GET"
+                        action="{{ route('employees.index') }}"
+                        hx-get="{{ route('employees.results') }}"
+                        hx-target="#employee-search-results"
+                        hx-swap="outerHTML"
+                    >
                         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-[minmax(18rem,2fr)_minmax(10rem,1fr)_minmax(10rem,1fr)_minmax(10rem,1fr)_auto] xl:items-end">
                             <div class="md:col-span-2 xl:col-span-1">
                                 <label for="keyword" class="block text-xs font-semibold text-slate-700">
@@ -163,12 +170,13 @@
                             </div>
 
                             <div class="flex gap-2 md:col-span-2 xl:col-span-1">
-                                <a
-                                    href="{{ route('employees.index') }}"
+                                <button
+                                    type="button"
+                                    data-employee-search-clear
                                     class="inline-flex h-9 flex-1 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 xl:flex-none"
                                 >
                                     クリア
-                                </a>
+                                </button>
                                 <button
                                     type="submit"
                                     class="inline-flex h-9 flex-1 items-center justify-center rounded-md border border-blue-700 bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 xl:flex-none"
@@ -180,85 +188,7 @@
                     </form>
                 </div>
 
-                <div class="overflow-hidden rounded-md border border-slate-200 bg-white">
-                    <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 sm:px-5">
-                        <h2 class="text-sm font-semibold text-slate-900">検索結果</h2>
-                        <p class="text-xs text-slate-500">表示件数 {{ count($employees) }} 件</p>
-                    </div>
-
-                    @if (count($employees) === 0)
-                        <div class="px-6 py-14 text-center">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="mx-auto size-7 text-slate-400" aria-hidden="true">
-                                <circle cx="11" cy="11" r="7" stroke-width="1.5"></circle>
-                                <path d="m20 20-4-4" stroke-width="1.5" stroke-linecap="round"></path>
-                            </svg>
-                            <h3 class="mt-3 text-sm font-semibold text-slate-900">該当する社員が見つかりませんでした</h3>
-                            <p class="mt-1 text-sm text-slate-500">検索条件を変更して、もう一度お試しください。</p>
-                        </div>
-                    @else
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-slate-200">
-                                <thead class="bg-slate-50">
-                                    <tr>
-                                        <th scope="col" class="whitespace-nowrap px-4 py-2.5 text-left text-xs font-semibold text-slate-600 sm:px-5">
-                                            氏名
-                                        </th>
-                                        <th scope="col" class="whitespace-nowrap px-4 py-2.5 text-left text-xs font-semibold text-slate-600">
-                                            社員番号
-                                        </th>
-                                        <th scope="col" class="whitespace-nowrap px-4 py-2.5 text-left text-xs font-semibold text-slate-600">
-                                            メールアドレス
-                                        </th>
-                                        <th scope="col" class="whitespace-nowrap px-4 py-2.5 text-left text-xs font-semibold text-slate-600">
-                                            部署
-                                        </th>
-                                        <th scope="col" class="whitespace-nowrap px-4 py-2.5 text-left text-xs font-semibold text-slate-600">
-                                            役職
-                                        </th>
-                                        <th scope="col" class="whitespace-nowrap px-4 py-2.5 text-left text-xs font-semibold text-slate-600 sm:pr-5">
-                                            在籍状態
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-200 bg-white">
-                                    @foreach ($employees as $employee)
-                                        @php
-                                            [$statusLabel, $statusClasses] = match ($employee->employmentStatus) {
-                                                \App\Enums\EmploymentStatus::Active => ['在籍', 'bg-green-50 text-green-700 ring-green-600/20'],
-                                                \App\Enums\EmploymentStatus::Leave => ['休職', 'bg-yellow-50 text-yellow-700 ring-yellow-600/20'],
-                                                \App\Enums\EmploymentStatus::Retired => ['退職', 'bg-slate-100 text-slate-600 ring-slate-500/20'],
-                                            };
-                                        @endphp
-                                        <tr class="hover:bg-blue-50/50">
-                                            <td class="whitespace-nowrap px-4 py-3 text-sm font-semibold text-slate-950 sm:px-5">
-                                                {{ $employee->familyName }} {{ $employee->givenName }}
-                                            </td>
-                                            <td class="whitespace-nowrap px-4 py-3 font-mono text-xs text-slate-600">
-                                                {{ $employee->employeeNumber }}
-                                            </td>
-                                            <td class="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
-                                                <a href="mailto:{{ $employee->email }}" class="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500/30">
-                                                    {{ $employee->email }}
-                                                </a>
-                                            </td>
-                                            <td class="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
-                                                {{ $employee->departmentName }}
-                                            </td>
-                                            <td class="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
-                                                {{ $employee->positionName }}
-                                            </td>
-                                            <td class="whitespace-nowrap px-4 py-3 text-sm sm:pr-5">
-                                                <span class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium ring-1 ring-inset {{ $statusClasses }}">
-                                                    {{ $statusLabel }}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
-                </div>
+                @include('employees.partials.results', ['employees' => $employees])
             </section>
         </main>
     </body>

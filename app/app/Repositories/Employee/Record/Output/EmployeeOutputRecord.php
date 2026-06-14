@@ -10,7 +10,7 @@ final readonly class EmployeeOutputRecord
         public int $id,
         public string $employeeNumber,
         public int $departmentId,
-        public ?int $positionId,
+        public int $positionId,
         public string $familyName,
         public string $givenName,
         public string $familyNameKana,
@@ -20,6 +20,6 @@ final readonly class EmployeeOutputRecord
         public string $createdAt,
         public string $updatedAt,
         public EmployeeSearchDepartmentOutputRecord $department,
-        public ?EmployeeSearchPositionOutputRecord $position,
+        public EmployeeSearchPositionOutputRecord $position,
     ) {}
 }

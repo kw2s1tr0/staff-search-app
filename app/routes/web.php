@@ -1,11 +1,11 @@
 <?php
 
-use App\Http\Controllers\Api\Employee\EmployeeController;
+use App\Http\Controllers\Web\Employee\EmployeeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::apiResource('employees', EmployeeController::class)
-    ->only(['index']);
+Route::get('employees', [EmployeeController::class, 'index'])
+    ->name('employees.index');

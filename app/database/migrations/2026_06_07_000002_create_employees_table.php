@@ -22,7 +22,6 @@ return new class extends Migration
                 ->constrained()
                 ->restrictOnDelete();
             $table->foreignId('position_id')
-                ->nullable()
                 ->constrained()
                 ->restrictOnDelete();
             $table->string('family_name');

@@ -31,6 +31,9 @@ services:
       - mysql
     networks:
       - ssapp-network
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
   
   mysql:
     container_name: mysql

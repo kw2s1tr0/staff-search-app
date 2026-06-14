@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Application\Employee\Search;
 
-use App\Application\Employee\Search\Builder\SearchOutputBuilder;
 use App\Application\Employee\Search\Input\SearchInput;
+use App\Application\Employee\Search\Output\Builder\SearchOutputBuilder;
 use App\Application\Employee\Search\SearchService;
 use App\Enums\EmploymentStatus;
 use App\Repositories\Employee\EmployeeRepository;

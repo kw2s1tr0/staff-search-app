@@ -12,13 +12,20 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
+/**
+ * 社員検索条件をSQLへ変換し、関連する部署・役職を含めて取得する。
+ */
 final class DatabaseEmployeeRepository implements EmployeeRepository
 {
+    /**
+     * 検索条件を適用し、DBの行データをRepositoryの出力Recordへ変換する。
+     */
     public function search(EmployeeSearchInputRecord $input): EmployeeSearchOutputRecord
     {
+        // 同名カラムを区別できるよう、部署・役職のカラムには専用の別名を付ける。
         $query = DB::table('employees')
             ->join('departments', 'departments.id', '=', 'employees.department_id')
-            ->leftJoin('positions', 'positions.id', '=', 'employees.position_id')
+            ->join('positions', 'positions.id', '=', 'employees.position_id')
             ->select([
                 'employees.id',
                 'employees.employee_number',
@@ -58,6 +65,7 @@ final class DatabaseEmployeeRepository implements EmployeeRepository
 
     private function applyInput(Builder $query, EmployeeSearchInputRecord $input): void
     {
+        // nullの条件はSQLへ追加せず、指定された絞り込みだけを有効にする。
         if ($input->departmentId !== null) {
             $query->where('employees.department_id', $input->departmentId);
         }
@@ -70,29 +78,37 @@ final class DatabaseEmployeeRepository implements EmployeeRepository
             $query->where('employees.employment_status', $input->employmentStatus->value);
         }
 
-        foreach ($input->keywords as $keyword) {
-            $query->where(function (Builder $keywordQuery) use ($keyword): void {
-                $likeKeyword = "%{$keyword}%";
-
-                $keywordQuery
-                    ->where('employees.employee_number', $keyword)
-                    ->orWhere('employees.email', $keyword)
-                    ->orWhereRaw(
-                        $this->concatenate('employees.family_name', 'employees.given_name').' like ?',
-                        [$likeKeyword]
-                    )
-                    ->orWhereRaw(
-                        $this->concatenate('employees.family_name_kana', 'employees.given_name_kana').' like ?',
-                        [$likeKeyword]
-                    )
-                    ->orWhere('departments.name', 'like', $likeKeyword)
-                    ->orWhere('positions.name', 'like', $likeKeyword);
-            });
+        if ($input->keywords === []) {
+            return;
         }
+
+        // キーワード同士と、1つのキーワードに対する検索項目同士をORで評価する。
+        $query->where(function (Builder $keywordsQuery) use ($input): void {
+            foreach ($input->keywords as $keyword) {
+                $keywordsQuery->orWhere(function (Builder $keywordQuery) use ($keyword): void {
+                    $likeKeyword = "%{$keyword}%";
+
+                    $keywordQuery
+                        ->where('employees.employee_number', $keyword)
+                        ->orWhere('employees.email', $keyword)
+                        ->orWhereRaw(
+                            $this->concatenate('employees.family_name', 'employees.given_name').' like ?',
+                            [$likeKeyword]
+                        )
+                        ->orWhereRaw(
+                            $this->concatenate('employees.family_name_kana', 'employees.given_name_kana').' like ?',
+                            [$likeKeyword]
+                        )
+                        ->orWhere('departments.name', 'like', $likeKeyword)
+                        ->orWhere('positions.name', 'like', $likeKeyword);
+                });
+            }
+        });
     }
 
     private function concatenate(string $firstColumn, string $secondColumn): string
     {
+        // SQLiteとMySQLでは文字列連結の構文が異なるため、接続先に合わせて切り替える。
         if (DB::getDriverName() === 'sqlite') {
             return "{$firstColumn} || {$secondColumn}";
         }
@@ -102,11 +118,12 @@ final class DatabaseEmployeeRepository implements EmployeeRepository
 
     private function toEmployeeOutputRecord(stdClass $row): EmployeeOutputRecord
     {
+        // Query BuilderはstdClassを返すため、境界で型を確定して後続処理を安全にする。
         return new EmployeeOutputRecord(
             id: (int) $row->id,
             employeeNumber: (string) $row->employee_number,
             departmentId: (int) $row->department_id,
-            positionId: $row->position_id !== null ? (int) $row->position_id : null,
+            positionId: (int) $row->position_id,
             familyName: (string) $row->family_name,
             givenName: (string) $row->given_name,
             familyNameKana: (string) $row->family_name_kana,
@@ -126,12 +143,8 @@ final class DatabaseEmployeeRepository implements EmployeeRepository
         );
     }
 
-    private function toPositionOutputRecord(stdClass $row): ?EmployeeSearchPositionOutputRecord
+    private function toPositionOutputRecord(stdClass $row): EmployeeSearchPositionOutputRecord
     {
-        if ($row->position_data_id === null) {
-            return null;
-        }
-
         return new EmployeeSearchPositionOutputRecord(
             id: (int) $row->position_data_id,
             code: (string) $row->position_data_code,

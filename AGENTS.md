@@ -24,6 +24,8 @@
 
 Laravel の標準構成と `App\` 名前空間の PSR-4 オートロードに従います。PHP は 4 スペースインデントを使い、クラス名は StudlyCase、メソッド名と変数名は camelCase、テーブル名とカラム名は snake_case にします。Blade ビューは小文字のパス形式で命名してください。PHP 変更前後は `composer format` を実行し、確認のみの場合は `composer format:check` を使います。PHPCS は `app/phpcs.xml.dist`、静的解析は `app/phpstan.neon.dist` で設定されています。
 
+メソッド引数の中でインスタンス生成、変換処理、別のメソッド呼び出しを入れ子にしないでください。処理ごとに中間変数へ代入し、上から順にデータの流れを追える書き方にします。
+
 ## Testing Guidelines
 
 テストは Laravel のテストランナー経由で PHPUnit を使用します。HTTP や画面遷移などの振る舞いは `tests/Feature`、独立したロジックは `tests/Unit` に配置します。テストファイル名は `*Test.php` で終えてください。実装詳細ではなく、レスポンスステータス、DB 状態、外部から観測できる振る舞いを検証します。通常は `composer test`、大きめの変更前後は `composer qa` を実行します。

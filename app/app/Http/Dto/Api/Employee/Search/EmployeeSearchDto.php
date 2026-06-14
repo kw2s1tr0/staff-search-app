@@ -12,7 +12,7 @@ final readonly class EmployeeSearchDto implements JsonSerializable
         public int $id,
         public string $employeeNumber,
         public int $departmentId,
-        public ?int $positionId,
+        public int $positionId,
         public string $familyName,
         public string $givenName,
         public string $familyNameKana,
@@ -22,7 +22,7 @@ final readonly class EmployeeSearchDto implements JsonSerializable
         public string $createdAt,
         public string $updatedAt,
         public EmployeeSearchDepartmentDto $department,
-        public ?EmployeeSearchPositionDto $position,
+        public EmployeeSearchPositionDto $position,
     ) {}
 
     /**

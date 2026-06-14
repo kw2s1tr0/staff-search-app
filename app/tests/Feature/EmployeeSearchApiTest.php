@@ -40,7 +40,7 @@ class EmployeeSearchApiTest extends TestCase
                 'employment_status' => EmploymentStatus::Leave,
             ]);
 
-        $response = $this->getJson('/employees?keyword=yamada&department_id='.$development->id);
+        $response = $this->getJson('/api/employees?keyword=yamada&department_id='.$development->id);
 
         $response
             ->assertOk()
@@ -52,7 +52,7 @@ class EmployeeSearchApiTest extends TestCase
 
     public function test_employee_index_rejects_invalid_search_conditions(): void
     {
-        $response = $this->getJson('/employees?department_id=invalid&employment_status=unknown');
+        $response = $this->getJson('/api/employees?department_id=invalid&employment_status=unknown');
 
         $response
             ->assertUnprocessable()
@@ -80,7 +80,7 @@ class EmployeeSearchApiTest extends TestCase
             ->for($development)
             ->for($engineer)
             ->create([
-                'family_name' => 'Yamada',
+                'family_name' => 'Sato',
                 'given_name' => 'Hanako',
                 'employment_status' => EmploymentStatus::Active,
             ]);
@@ -94,7 +94,7 @@ class EmployeeSearchApiTest extends TestCase
                 'employment_status' => EmploymentStatus::Active,
             ]);
 
-        $response = $this->getJson('/employees?'.http_build_query([
+        $response = $this->getJson('/api/employees?'.http_build_query([
             'keyword' => 'Yamada Taro',
             'department_id' => $development->id,
             'position_id' => $engineer->id,
@@ -118,12 +118,12 @@ class EmployeeSearchApiTest extends TestCase
             'given_name_kana' => 'タロウ',
         ]);
 
-        $this->getJson('/employees?keyword=YamadaTaro')
+        $this->getJson('/api/employees?keyword=YamadaTaro')
             ->assertOk()
             ->assertJsonCount(1)
             ->assertJsonPath('0.id', $employee->id);
 
-        $this->getJson('/employees?keyword=ヤマダタロウ')
+        $this->getJson('/api/employees?keyword=ヤマダタロウ')
             ->assertOk()
             ->assertJsonCount(1)
             ->assertJsonPath('0.id', $employee->id);
@@ -138,12 +138,12 @@ class EmployeeSearchApiTest extends TestCase
             ->for($position)
             ->create();
 
-        $this->getJson('/employees?keyword=Development')
+        $this->getJson('/api/employees?keyword=Development')
             ->assertOk()
             ->assertJsonCount(1)
             ->assertJsonPath('0.id', $employee->id);
 
-        $this->getJson('/employees?keyword=Engineer')
+        $this->getJson('/api/employees?keyword=Engineer')
             ->assertOk()
             ->assertJsonCount(1)
             ->assertJsonPath('0.id', $employee->id);
@@ -158,39 +158,45 @@ class EmployeeSearchApiTest extends TestCase
             'email' => 'exact-match@example.com',
         ]);
 
-        $this->getJson('/employees?keyword=EMP-EXACT')
+        $this->getJson('/api/employees?keyword=EMP-EXACT')
             ->assertOk()
             ->assertJsonCount(0);
 
-        $this->getJson('/employees?keyword=example.com')
+        $this->getJson('/api/employees?keyword=example.com')
             ->assertOk()
             ->assertJsonCount(0);
 
-        $this->getJson('/employees?keyword=EMP-EXACT-001')
+        $this->getJson('/api/employees?keyword=EMP-EXACT-001')
             ->assertOk()
             ->assertJsonCount(1)
             ->assertJsonPath('0.id', $employee->id);
 
-        $this->getJson('/employees?keyword=exact-match@example.com')
+        $this->getJson('/api/employees?keyword=exact-match@example.com')
             ->assertOk()
             ->assertJsonCount(1)
             ->assertJsonPath('0.id', $employee->id);
     }
 
-    public function test_employee_index_returns_an_employee_without_a_position(): void
+    public function test_employee_index_always_returns_a_position(): void
     {
         $department = Department::factory()->create();
+        $position = Position::factory()->create([
+            'code' => 'MEMBER',
+            'name' => 'Member',
+        ]);
         $employee = Employee::factory()
             ->for($department)
-            ->create(['position_id' => null]);
+            ->for($position)
+            ->create();
 
-        $response = $this->getJson('/employees?department_id='.$department->id);
+        $response = $this->getJson('/api/employees?department_id='.$department->id);
 
         $response
             ->assertOk()
             ->assertJsonCount(1)
             ->assertJsonPath('0.id', $employee->id)
-            ->assertJsonPath('0.position_id', null)
-            ->assertJsonPath('0.position', null);
+            ->assertJsonPath('0.position_id', $position->id)
+            ->assertJsonPath('0.position.id', $position->id)
+            ->assertJsonPath('0.position.code', 'MEMBER');
     }
 }

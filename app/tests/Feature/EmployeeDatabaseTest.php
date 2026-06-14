@@ -59,11 +59,11 @@ class EmployeeDatabaseTest extends TestCase
         $this->assertTrue($position->employees->contains($employee));
     }
 
-    public function test_employee_can_exist_without_a_position(): void
+    public function test_employee_requires_a_position(): void
     {
-        $employee = Employee::factory()->create(['position_id' => null]);
+        $this->expectException(QueryException::class);
 
-        $this->assertNull($employee->position);
+        Employee::factory()->create(['position_id' => null]);
     }
 
     public function test_employee_belongs_to_a_department(): void
@@ -195,13 +195,14 @@ class EmployeeDatabaseTest extends TestCase
     public function test_database_rejects_an_unknown_employment_status(): void
     {
         $department = Department::factory()->create();
+        $position = Position::factory()->create();
 
         $this->expectException(QueryException::class);
 
         DB::table('employees')->insert([
             'employee_number' => 'EMP-INVALID',
             'department_id' => $department->id,
-            'position_id' => null,
+            'position_id' => $position->id,
             'family_name' => 'Test',
             'given_name' => 'Employee',
             'family_name_kana' => 'テスト',
@@ -221,8 +222,26 @@ class EmployeeDatabaseTest extends TestCase
         $this->assertDatabaseCount('departments', 3);
         $this->assertDatabaseCount('positions', 3);
         $this->assertDatabaseCount('employees', 15);
-        $this->assertDatabaseHas('departments', ['code' => 'DEV']);
-        $this->assertDatabaseHas('positions', ['code' => 'MANAGER']);
+        $this->assertDatabaseHas('departments', ['code' => 'DEV', 'name' => '開発部']);
+        $this->assertDatabaseHas('positions', ['code' => 'MEMBER', 'name' => '一般社員']);
+        $this->assertDatabaseHas('employees', [
+            'employee_number' => 'EMP-00001',
+            'family_name' => '山田',
+            'given_name' => '太郎',
+            'family_name_kana' => 'ヤマダ',
+            'given_name_kana' => 'タロウ',
+            'email' => 'employee00001@example.com',
+            'employment_status' => EmploymentStatus::Active->value,
+        ]);
+        $this->assertDatabaseHas('employees', [
+            'employee_number' => 'EMP-00004',
+            'employment_status' => EmploymentStatus::Leave->value,
+        ]);
+        $this->assertDatabaseHas('employees', [
+            'employee_number' => 'EMP-00005',
+            'employment_status' => EmploymentStatus::Retired->value,
+        ]);
         $this->assertDatabaseMissing('employees', ['department_id' => null]);
+        $this->assertDatabaseMissing('employees', ['position_id' => null]);
     }
 }

@@ -10,7 +10,7 @@
     </head>
     <body class="min-h-screen bg-white text-slate-900 antialiased">
         <header class="bg-slate-950 text-white">
-            <div class="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+            <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center gap-3">
                     <span class="flex size-8 items-center justify-center rounded-md border border-white/15 bg-white/10">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="size-4" aria-hidden="true">
@@ -24,6 +24,18 @@
                         <span class="text-slate-500">/</span>
                         <span class="text-slate-300">社員</span>
                     </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="hidden text-xs text-slate-300 sm:inline">{{ auth()->user()->name }}</span>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button
+                            type="submit"
+                            class="inline-flex h-8 items-center justify-center rounded-md border border-white/20 bg-white/10 px-3 text-xs font-semibold text-white hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/40"
+                        >
+                            ログアウト
+                        </button>
+                    </form>
                 </div>
             </div>
         </header>

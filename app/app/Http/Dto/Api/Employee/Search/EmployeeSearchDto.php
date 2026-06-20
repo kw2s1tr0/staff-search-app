@@ -6,6 +6,9 @@ use App\Enums\EmploymentStatus;
 use Carbon\CarbonImmutable;
 use JsonSerializable;
 
+/**
+ * 社員1件分と関連情報のAPIレスポンス形式を定義するDTO。
+ */
 final readonly class EmployeeSearchDto implements JsonSerializable
 {
     public function __construct(

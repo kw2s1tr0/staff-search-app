@@ -31,6 +31,7 @@ final class SearchOutputBuilder
 
     private function buildEmployee(EmployeeOutputRecord $employee): EmployeeOutput
     {
+        // 関連する部署と役職も、Repository固有のRecordから先に変換する。
         $department = $this->buildDepartment($employee->department);
         $position = $this->buildPosition($employee->position);
 
@@ -55,6 +56,7 @@ final class SearchOutputBuilder
     private function buildDepartment(
         EmployeeSearchDepartmentOutputRecord $department
     ): DepartmentOutput {
+        // 部署情報をHTTP層から独立したApplication DTOへ詰め替える。
         return new DepartmentOutput(
             id: $department->id,
             code: $department->code,
@@ -67,6 +69,7 @@ final class SearchOutputBuilder
     private function buildPosition(
         EmployeeSearchPositionOutputRecord $position
     ): PositionOutput {
+        // 役職情報をHTTP層から独立したApplication DTOへ詰め替える。
         return new PositionOutput(
             id: $position->id,
             code: $position->code,

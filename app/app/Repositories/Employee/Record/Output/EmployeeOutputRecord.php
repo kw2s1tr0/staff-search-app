@@ -4,6 +4,9 @@ namespace App\Repositories\Employee\Record\Output;
 
 use App\Enums\EmploymentStatus;
 
+/**
+ * DBから取得した社員1件と関連情報をRepository境界で型付けするRecord。
+ */
 final readonly class EmployeeOutputRecord
 {
     public function __construct(

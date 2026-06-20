@@ -53,6 +53,7 @@ final class DatabaseEmployeeRepository implements EmployeeRepository
 
         $this->applyInput($query, $input);
 
+        // 結果の順序を固定し、各行を型付きRecordへ変換する。
         /** @var list<EmployeeOutputRecord> $employees */
         $employees = $query
             ->orderBy('employees.id')
@@ -63,6 +64,9 @@ final class DatabaseEmployeeRepository implements EmployeeRepository
         return new EmployeeSearchOutputRecord($employees);
     }
 
+    /**
+     * 値が指定された検索条件だけをQuery Builderへ追加する。
+     */
     private function applyInput(Builder $query, EmployeeSearchInputRecord $input): void
     {
         // nullの条件はSQLへ追加せず、指定された絞り込みだけを有効にする。
@@ -106,6 +110,9 @@ final class DatabaseEmployeeRepository implements EmployeeRepository
         });
     }
 
+    /**
+     * 氏名を空白なしで検索するため、DBごとの文字列連結SQLを返す。
+     */
     private function concatenate(string $firstColumn, string $secondColumn): string
     {
         // SQLiteとMySQLでは文字列連結の構文が異なるため、接続先に合わせて切り替える。
@@ -116,6 +123,9 @@ final class DatabaseEmployeeRepository implements EmployeeRepository
         return "CONCAT({$firstColumn}, {$secondColumn})";
     }
 
+    /**
+     * Query Builderが返す未型付けの行を、社員の出力Recordへ変換する。
+     */
     private function toEmployeeOutputRecord(stdClass $row): EmployeeOutputRecord
     {
         // Query BuilderはstdClassを返すため、境界で型を確定して後続処理を安全にする。
@@ -143,6 +153,9 @@ final class DatabaseEmployeeRepository implements EmployeeRepository
         );
     }
 
+    /**
+     * JOIN結果に含まれる役職カラムを、役職専用Recordへ切り出す。
+     */
     private function toPositionOutputRecord(stdClass $row): EmployeeSearchPositionOutputRecord
     {
         return new EmployeeSearchPositionOutputRecord(

@@ -9,6 +9,9 @@ use App\Http\Dto\Api\Department\Search\Builder\SearchDtoBuilder;
 use App\Http\Requests\Api\Department\Index\IndexRequest;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * 部署検索APIの入力をApplication層へ渡し、結果をJSONで返す。
+ */
 class DepartmentController extends Controller
 {
     public function __construct(
@@ -17,13 +20,18 @@ class DepartmentController extends Controller
         private readonly SearchDtoBuilder $searchDtoBuilder,
     ) {}
 
+    /**
+     * 検証、入力変換、検索、API用DTO変換の順に処理する。
+     */
     public function index(IndexRequest $request): JsonResponse
     {
+        // FormRequestのルールを通過した値だけを検索処理へ渡す。
         $validated = $request->validated();
         $input = $this->searchInputBuilder->build($validated);
         $output = $this->searchService->execute($input);
         $dtos = $this->searchDtoBuilder->build($output);
 
+        // JsonSerializableなDTOをLaravelのJSONレスポンスへ変換する。
         return response()->json($dtos);
     }
 }

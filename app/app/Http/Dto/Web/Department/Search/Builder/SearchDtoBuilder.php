@@ -6,6 +6,9 @@ use App\Application\Department\Search\Output\DepartmentOutput;
 use App\Application\Department\Search\Output\SearchOutput;
 use App\Http\Dto\Web\Department\Search\DepartmentSearchDto;
 
+/**
+ * 部署検索結果から、選択肢表示に必要な値だけを取り出す。
+ */
 final class SearchDtoBuilder
 {
     /**

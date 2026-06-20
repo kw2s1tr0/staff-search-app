@@ -5,6 +5,9 @@ namespace App\Http\Dto\Api\Department\Search;
 use Carbon\CarbonImmutable;
 use JsonSerializable;
 
+/**
+ * 部署1件分のAPIレスポンス形式を定義するDTO。
+ */
 final readonly class DepartmentSearchDto implements JsonSerializable
 {
     public function __construct(

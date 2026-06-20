@@ -4,6 +4,9 @@ namespace App\Application\Employee\Search\Output;
 
 use App\Enums\EmploymentStatus;
 
+/**
+ * HTTP層へ渡す社員1件分の検索結果DTO。
+ */
 final readonly class EmployeeOutput
 {
     public function __construct(

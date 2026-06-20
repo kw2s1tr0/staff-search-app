@@ -2,6 +2,9 @@
 
 namespace App\Repositories\Employee\Record\Output;
 
+/**
+ * 社員検索結果に含める部署1件分のRepository Record。
+ */
 final readonly class EmployeeSearchDepartmentOutputRecord
 {
     public function __construct(

@@ -5,6 +5,9 @@ namespace App\Http\Dto\Api\Employee\Search;
 use Carbon\CarbonImmutable;
 use JsonSerializable;
 
+/**
+ * 社員検索APIのレスポンスに含める役職情報DTO。
+ */
 final readonly class EmployeeSearchPositionDto implements JsonSerializable
 {
     public function __construct(

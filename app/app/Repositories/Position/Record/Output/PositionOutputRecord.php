@@ -2,6 +2,9 @@
 
 namespace App\Repositories\Position\Record\Output;
 
+/**
+ * DBから取得した役職1件分をRepository境界で型付けするRecord。
+ */
 final readonly class PositionOutputRecord
 {
     public function __construct(

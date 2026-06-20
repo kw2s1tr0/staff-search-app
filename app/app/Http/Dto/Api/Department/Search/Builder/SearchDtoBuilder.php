@@ -6,6 +6,9 @@ use App\Application\Department\Search\Output\DepartmentOutput;
 use App\Application\Department\Search\Output\SearchOutput;
 use App\Http\Dto\Api\Department\Search\DepartmentSearchDto;
 
+/**
+ * Application層の部署検索結果を、APIレスポンス用DTOへ変換する。
+ */
 final class SearchDtoBuilder
 {
     /**

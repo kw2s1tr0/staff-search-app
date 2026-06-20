@@ -6,6 +6,9 @@ use App\Application\Position\Search\Output\PositionOutput;
 use App\Application\Position\Search\Output\SearchOutput;
 use App\Http\Dto\Web\Position\Search\PositionSearchDto;
 
+/**
+ * 役職検索結果から、選択肢表示に必要な値だけを取り出す。
+ */
 final class SearchDtoBuilder
 {
     /**

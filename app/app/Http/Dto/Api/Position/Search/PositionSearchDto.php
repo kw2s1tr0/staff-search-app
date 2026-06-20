@@ -5,6 +5,9 @@ namespace App\Http\Dto\Api\Position\Search;
 use Carbon\CarbonImmutable;
 use JsonSerializable;
 
+/**
+ * 役職1件分のAPIレスポンス形式を定義するDTO。
+ */
 final readonly class PositionSearchDto implements JsonSerializable
 {
     public function __construct(

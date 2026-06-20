@@ -6,6 +6,9 @@ use App\Application\Position\Search\Output\PositionOutput;
 use App\Application\Position\Search\Output\SearchOutput;
 use App\Http\Dto\Api\Position\Search\PositionSearchDto;
 
+/**
+ * Application層の役職検索結果を、APIレスポンス用DTOへ変換する。
+ */
 final class SearchDtoBuilder
 {
     /**

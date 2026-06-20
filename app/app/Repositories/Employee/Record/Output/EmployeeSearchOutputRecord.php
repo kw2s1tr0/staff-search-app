@@ -2,6 +2,9 @@
 
 namespace App\Repositories\Employee\Record\Output;
 
+/**
+ * 社員Repositoryが返す複数件の検索結果をまとめるRecord。
+ */
 final readonly class EmployeeSearchOutputRecord
 {
     /**

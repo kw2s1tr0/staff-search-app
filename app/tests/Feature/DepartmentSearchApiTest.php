@@ -3,12 +3,22 @@
 namespace Tests\Feature;
 
 use App\Models\Department;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class DepartmentSearchApiTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user, ['api:read']);
+    }
 
     public function test_department_index_uses_the_default_order(): void
     {
